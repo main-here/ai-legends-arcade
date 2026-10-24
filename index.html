@@ -632,7 +632,7 @@ function endScreen(r) {
   show('end'); sfx(r === 'lose' ? 220 : 660, .4, 'square', .07, r === 'lose' ? -120 : 600);
 }
 // Public page to share. Set it once the itch.io page exists; until then use the embedding page (itch) or this page.
-const GAME_URL = 'https://manuelaheres-sudo.github.io/ai-legends-arcade/';
+const GAME_URL = 'https://main-here.github.io/ai-legends-arcade/';
 const shareUrl = () => GAME_URL
   || (/^https:\/\/[^/]+\.itch\.io\/[^/?#]+/.test(document.referrer) ? document.referrer.split('?')[0] : '')
   || location.href.split('#')[0].split('?')[0];
