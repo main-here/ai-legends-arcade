@@ -1,0 +1,662 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>AI Legends Arcade</title>
+<meta name="description" content="Pick a legend of science, philosophy or AI and win a 16-bit debate: FACT, LOGIC or QUOTE. By @ai.legends.arcade">
+<meta name="theme-color" content="#0b0716">
+<meta property="og:title" content="AI LEGENDS ARCADE">
+<meta property="og:description" content="Pick your legend. Debate about AI. FACT, LOGIC or QUOTE?">
+<link rel="preload" href="assets/PixelifySans.ttf" as="font" type="font/ttf" crossorigin>
+<style>
+@font-face{font-family:Pix;src:url(assets/PixelifySans.ttf) format("truetype");font-display:swap}
+:root{--red:#ff2e4d;--red2:#a3122a;--blue:#2e8bff;--blue2:#123c9c;--gold:#ffd23e;--ink:#0b0716;--ink2:#1a1030;--txt:#fff6e0}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--ink);color:var(--txt);font-family:Pix,monospace;overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+#app{position:relative;height:100vh;height:100dvh;max-width:540px;margin:0 auto;overflow:hidden;background:var(--ink)}
+#app::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:50;background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 1px,transparent 1px 3px)}
+.scr{position:absolute;inset:0;display:none;flex-direction:column}
+.scr.on{display:flex}
+img{image-rendering:pixelated}
+button{font-family:inherit;color:inherit;border:0;background:none;cursor:pointer}
+.sh{text-shadow:3px 3px 0 #000}
+@keyframes blink{50%{opacity:0}}
+.blink{animation:blink 1s steps(1) infinite}
+
+/* title */
+#title{align-items:center;justify-content:center;gap:10px;text-align:center;background:radial-gradient(ellipse at 50% 120%,#3a0d2c 0,var(--ink) 60%)}
+#title .logo{font-size:56px;line-height:.9;letter-spacing:2px}
+#title .logo .a{color:var(--red);text-shadow:4px 4px 0 var(--red2),8px 8px 0 #000}
+#title .logo .b{color:var(--blue);text-shadow:4px 4px 0 var(--blue2),8px 8px 0 #000}
+#title .logo .c{display:block;font-size:40px;color:var(--gold);text-shadow:4px 4px 0 #8a5a00,8px 8px 0 #000;margin-top:6px}
+#title .duo{position:relative;width:100%;height:230px;margin:6px 0}
+#title .duo img{position:absolute;bottom:0;height:210px}
+#title .duo .l{left:6%}
+#title .duo .r{right:6%;transform:scaleX(-1)}
+#title .duo .vs{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);font-size:44px;color:var(--gold);text-shadow:3px 3px 0 #000}
+#title .coin{font-size:26px;color:var(--gold)}
+#title .tap{font-size:20px}
+#title .foot{position:absolute;bottom:14px;font-size:13px;opacity:.7}
+
+/* select */
+#select{background:linear-gradient(180deg,#160b2a,var(--ink))}
+#select h2{font-size:28px;text-align:center;padding:16px 0 8px;color:var(--gold)}
+.tabs{display:flex;gap:6px;padding:0 12px 10px}
+.tabs button{flex:1;font-size:15px;padding:8px 0;background:var(--ink2);border:2px solid #3b2a5c}
+.tabs button.on{background:var(--red);border-color:#fff;text-shadow:2px 2px 0 #000}
+.grid{flex:1;overflow-y:auto;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:4px 12px 20px;align-content:start;-webkit-overflow-scrolling:touch}
+.card{position:relative;display:block;width:100%;background:#000;border:3px solid #3b2a5c;aspect-ratio:3/4;overflow:hidden}
+.card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.card span{position:absolute;left:0;right:0;bottom:0;font-size:10px;line-height:1.1;padding:3px 2px;background:rgba(0,0,0,.75);text-align:center;word-break:break-word}
+.card.pick{border-color:var(--red);box-shadow:0 0 0 3px #fff}
+.hint{font-size:13px;text-align:center;opacity:.7;padding-bottom:8px}
+
+/* vs */
+#vs{background:#000;overflow:hidden}
+#vs .half{position:absolute;left:0;right:0;height:52%;display:flex;align-items:center;gap:14px;padding:0 18px}
+#vs .p1{top:0;background:linear-gradient(135deg,var(--red2),var(--red));clip-path:polygon(0 0,100% 0,100% 82%,0 100%)}
+#vs .p2{bottom:0;background:linear-gradient(135deg,var(--blue),var(--blue2));clip-path:polygon(0 18%,100% 0,100% 100%,0 100%);flex-direction:row-reverse;text-align:right}
+#vs .half img{width:42%;border:4px solid #fff;box-shadow:6px 6px 0 #000}
+#vs .nm{font-size:28px;line-height:1}
+#vs .sub{font-size:14px;opacity:.85;margin-top:6px}
+#vs .big{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:84px;color:var(--gold);text-shadow:5px 5px 0 #000;z-index:2}
+
+/* fight */
+#fight{background:#000}
+.hud{position:relative;z-index:5;padding:10px 10px 6px;background:linear-gradient(#000,rgba(0,0,0,.6))}
+.row{display:flex;align-items:center;gap:8px}
+.bar{flex:1;height:18px;border:2px solid #fff;background:#5a0010;position:relative;overflow:hidden}
+.bar i{position:absolute;top:0;bottom:0;background:linear-gradient(#ffe86b,#f0a400);transition:width .15s}
+.bar.l i{right:0}.bar.r i{left:0}
+.timer{width:52px;text-align:center;font-size:34px;color:var(--gold);line-height:1}
+.names{display:flex;justify-content:space-between;font-size:14px;margin-top:4px}
+.names .n1{color:var(--red)}.names .n2{color:var(--blue)}
+.stage{position:relative;flex:1;overflow:hidden}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated}
+.fx{position:absolute;inset:0;pointer-events:none}
+.ftr{position:absolute;bottom:9%;height:46%;z-index:2}
+.ftr img{height:100%;display:block;filter:drop-shadow(0 4px 0 rgba(0,0,0,.35))}
+.ftr.p1{left:3%}
+.ftr.p2{right:3%}
+.ftr.p2 img{transform:scaleX(-1)}
+.ftr.hit img{filter:brightness(3) saturate(0)}
+.ftr.spc{z-index:3}
+.supers{position:absolute;left:10px;right:10px;bottom:8px;display:flex;justify-content:space-between;z-index:4;font-size:12px}
+.sup{width:42%}
+.sup .bar{height:10px;border-width:2px;background:#111}
+.sup .bar i{background:linear-gradient(90deg,#7a5cff,#ff5ce1)}
+.sup.full .bar i{background:linear-gradient(90deg,#fff,var(--gold));animation:blink .3s steps(1) infinite}
+.sup.r{text-align:right}
+.rules{background:#000;text-align:center;font-size:12px;padding:6px 0 0;opacity:.8}
+.ctl{display:flex;gap:8px;padding:10px 10px calc(14px + env(safe-area-inset-bottom));background:#000}
+.ctl button{flex:1;height:84px;border-radius:50%;font-size:17px;border:3px solid #fff;box-shadow:0 6px 0 #000,inset 0 -6px 0 rgba(0,0,0,.35);text-shadow:2px 2px 0 #000}
+.ctl button:active{transform:translateY(4px);box-shadow:0 2px 0 #000,inset 0 -2px 0 rgba(0,0,0,.35)}
+.b1{background:var(--red)}.b2{background:var(--blue)}
+.b3{background:#c8a000}
+.mic{position:absolute;left:50%;bottom:30px;transform:translateX(-50%);z-index:9;font-size:22px;padding:10px 22px;background:var(--gold);color:#000;border:3px solid #fff;box-shadow:0 5px 0 #000;animation:pulse .5s infinite alternate}
+.mic[hidden]{display:none}
+@keyframes pulse{to{box-shadow:0 6px 0 #000,0 0 18px 4px var(--gold)}}
+.ctl button:disabled{opacity:.45}
+.banner{position:absolute;left:0;right:0;top:34%;text-align:center;font-size:58px;color:var(--gold);text-shadow:4px 4px 0 var(--red2),8px 8px 0 #000;z-index:8;pointer-events:none}
+.combo{position:absolute;top:12px;font-size:26px;color:var(--gold);z-index:6;text-shadow:3px 3px 0 #000}
+.combo.l{left:10px}.combo.r{right:10px}
+.move{position:absolute;top:39%;left:0;right:0;text-align:center;font-size:24px;z-index:7;text-shadow:3px 3px 0 #000;background:rgba(0,0,0,.6);padding:4px 0}
+.bubble{position:absolute;top:5%;max-width:86%;background:#fff;color:#111;border:3px solid #000;padding:10px 12px;font-size:18px;line-height:1.15;z-index:7;box-shadow:4px 4px 0 #000}
+.bubble::after{content:"";position:absolute;bottom:-14px;width:0;height:0;border:8px solid transparent;border-top:8px solid #000}
+.bubble.l{left:4%}.bubble.l::after{left:24px}
+.bubble.r{right:4%}.bubble.r::after{right:24px}
+.bubble b{display:block;font-size:11px;margin-bottom:3px}
+.bubble i{display:block;font-style:normal;font-size:10px;color:#666;margin-top:4px}
+.bubble.sm{font-size:15px;max-width:70%}
+.bubble.sm.r{top:21%}
+.bubble.drop{font-size:20px;border-color:var(--gold);box-shadow:4px 4px 0 #000,0 0 0 3px var(--gold)}
+.bubble.l b{color:var(--red2)}.bubble.r b{color:var(--blue2)}
+.spark{position:absolute;width:56px;height:56px;margin:-28px 0 0 -28px;z-index:6;background:radial-gradient(circle,#fff 0 22%,var(--gold) 23% 42%,transparent 43%);clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)}
+.flash{position:absolute;inset:0;background:#fff;opacity:0;z-index:9;pointer-events:none}
+.tag{position:absolute;font-size:18px;z-index:6;text-shadow:2px 2px 0 #000}
+
+/* end */
+#end{align-items:center;justify-content:center;text-align:center;gap:12px;padding:20px;background:radial-gradient(ellipse at 50% 30%,#3a0d2c,var(--ink) 70%)}
+#end .ko{font-size:64px;color:var(--gold);text-shadow:4px 4px 0 var(--red2),8px 8px 0 #000;line-height:1}
+#end .por{display:flex;gap:12px;justify-content:center}
+#end .por img{width:110px;border:4px solid #fff;box-shadow:6px 6px 0 #000}
+#end .por img.lost{filter:grayscale(1) brightness(.5)}
+#end .msg{font-size:24px;line-height:1.15}
+#end .msg .r{color:var(--red)}#end .msg .b{color:var(--blue)}
+#end .small{font-size:15px;opacity:.85}
+.btn{display:block;width:100%;max-width:320px;padding:14px 0;font-size:20px;border:3px solid #fff;box-shadow:0 5px 0 #000;text-decoration:none;color:var(--txt);text-shadow:2px 2px 0 #000}
+.btn:active{transform:translateY(3px);box-shadow:0 2px 0 #000}
+.btn.share{background:var(--gold);color:#000;text-shadow:none}
+.btn.again{background:var(--red)}
+.btn.pick{background:var(--blue)}
+.btn.ig{background:linear-gradient(90deg,#f9ce34,#ee2a7b,#6228d7)}
+.toast{position:absolute;left:50%;bottom:30px;transform:translateX(-50%);background:#000;border:2px solid var(--gold);padding:8px 14px;font-size:15px;z-index:60;display:none}
+.mute{position:absolute;top:10px;right:10px;z-index:40;font-size:14px;padding:4px 8px;border:2px solid #fff;background:rgba(0,0,0,.5)}
+.fs{right:auto;left:10px}
+.mus{position:absolute;z-index:45;font-size:13px;padding:4px 8px;border:2px solid #fff;background:rgba(0,0,0,.6);color:var(--gold)}
+.mus.off{color:#888;border-color:#888}
+#app[data-s=title] .mus{top:46px;right:10px}
+#app[data-s=select] .mus{bottom:12px;right:12px}
+#app[data-s=vs] .mus{display:none}
+#app[data-s=fight] .mus{top:52px;left:50%;transform:translateX(-50%);font-size:11px;padding:2px 6px}
+#app[data-s=end] .mus{top:10px;right:10px}
+</style>
+</head>
+<body>
+<div id="app" data-s="title">
+  <button class="mus" id="mus">♪ ON</button>
+  <section class="scr on" id="title">
+    <button class="mute" id="mute">SFX ON</button>
+    <button class="mute fs" id="fs" hidden>FULLSCREEN</button>
+    <div class="logo"><span class="a">AI</span> <span class="b">LEGENDS</span><span class="c">ARCADE</span></div>
+    <div class="duo"><img class="l" id="tl" alt=""><span class="vs">VS</span><img class="r" id="tr" alt=""></div>
+    <div class="coin blink sh">INSERT COIN</div>
+    <div class="tap sh">TAP TO START</div>
+    <div class="foot">@ai.legends.arcade · 1 PLAYER · FREE PLAY</div>
+  </section>
+
+  <section class="scr" id="select">
+    <h2 class="sh">SELECT YOUR LEGEND</h2>
+    <div class="tabs" id="tabs"></div>
+    <div class="hint">Tap a fighter · CPU picks your rival · FACT › QUOTE › LOGIC › FACT</div>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <section class="scr" id="vs">
+    <div class="half p1"><img id="v1" alt=""><div><div class="nm sh" id="vn1"></div><div class="sub" id="vs1"></div></div></div>
+    <div class="big">VS</div>
+    <div class="half p2"><img id="v2" alt=""><div><div class="nm sh" id="vn2"></div><div class="sub" id="vs2"></div></div></div>
+  </section>
+
+  <section class="scr" id="fight">
+    <div class="hud">
+      <div class="row"><div class="bar l"><i id="hp1"></i></div><div class="timer sh" id="tm">99</div><div class="bar r"><i id="hp2"></i></div></div>
+      <div class="names"><span class="n1 sh" id="fn1"></span><span class="n2 sh" id="fn2"></span></div>
+    </div>
+    <div class="stage" id="stage">
+      <canvas id="bg" width="180" height="200"></canvas>
+      <div class="ftr p1" id="f1"><img id="i1" alt=""></div>
+      <div class="ftr p2" id="f2"><img id="i2" alt=""></div>
+      <div class="fx" id="fx"></div>
+      <div class="supers">
+        <div class="sup l" id="sp1"><div class="bar"><i id="su1"></i></div>SUPER</div>
+        <div class="sup r" id="sp2"><div class="bar"><i id="su2"></i></div>SUPER</div>
+      </div>
+      <button class="mic" id="bM" hidden>🎤 MIC DROP!</button>
+      <div class="flash" id="flash"></div>
+    </div>
+    <div class="rules">FACT beats QUOTE · QUOTE beats LOGIC · LOGIC beats FACT</div>
+    <div class="ctl">
+      <button class="b1" id="bP">FACT</button>
+      <button class="b2" id="bK">LOGIC</button>
+      <button class="b3" id="bS">QUOTE</button>
+    </div>
+  </section>
+
+  <section class="scr" id="end">
+    <div class="ko" id="eko">K.O.!</div>
+    <div class="por"><img id="e1" alt=""><img id="e2" alt=""></div>
+    <div class="msg sh">Who won the debate?</div>
+    <div class="msg sh" id="emsg"></div>
+    <div class="small" id="esub"></div>
+    <button class="btn share" id="bShare">SHARE</button>
+    <button class="btn again" id="bAgain">REMATCH</button>
+    <button class="btn pick" id="bPick">NEW LEGEND</button>
+    <a class="btn ig" href="https://www.instagram.com/ai.legends.arcade/" target="_blank" rel="noopener">FOLLOW @ai.legends.arcade</a>
+  </section>
+
+  <div class="toast" id="toast"></div>
+</div>
+<script src="assets/data.js"></script>
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+const R = window.ROSTER;
+const SP = (k, t) => `assets/sp/${k}_${t}.webp`;
+const rnd = (a, b) => a + Math.random() * (b - a);
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const GROUPS = ['LEGENDS', 'NOW', 'ARCHETYPES'];
+
+// ---------- audio: tiny square-wave bleeps ----------
+let ac = null, muted = false;
+function sfx(f, d = .08, type = 'square', v = .08, slide = 0) {
+  if (muted) return;
+  try {
+    audio();
+    const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime;
+    o.type = type; o.frequency.setValueAtTime(f, t);
+    if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, f + slide), t + d);
+    g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(.0001, t + d);
+    o.connect(g).connect(ac.destination); o.start(t); o.stop(t + d);
+  } catch (e) {}
+}
+$('mute').onclick = e => { e.stopPropagation(); muted = !muted; $('mute').textContent = muted ? 'SFX OFF' : 'SFX ON'; };
+// ---------- music: procedural chiptune loops (no audio files) ----------
+const NOTE = { C: -9, D: -7, E: -5, F: -4, G: -2, A: 0, B: 2 };
+const hz = n => 440 * Math.pow(2, (NOTE[n[0]] + (n[1] === '#' ? 1 : 0) + 12 * (+n.slice(-1) - 4)) / 12);
+const seq = s => s.trim().split(/\s+/).map(t => t === '.' ? null : t);
+// 4 bars x 16 steps; '.' is a rest
+const SONGS = {
+  menu: {
+    bpm: 112, len: 1.8,
+    lead: seq(`A4 . C5 . E5 . . . D5 . C5 . B4 . . .  A4 . . . F4 . A4 . C5 . . . A4 . . .
+               G4 . C5 . E5 . G5 . E5 . . . C5 . . .  D5 . . . B4 . G4 . B4 . D5 . . . . .`),
+    roots: ['A2', 'F2', 'C3', 'G2'], hat: 2,
+  },
+  fight: {
+    bpm: 140, len: .9,
+    lead: seq(`A4 A4 . C5 . A4 E5 . D5 . C5 . B4 . C5 .  A4 A4 . C5 . A4 E5 . G5 . E5 . D5 . C5 .
+               F4 . A4 . C5 . F5 . E5 . C5 . A4 . C5 .  G4 . B4 . D5 . G5 . F5 . D5 . B4 . G4 .`),
+    roots: ['A2', 'A2', 'F2', 'G2'], hat: 1,
+  },
+};
+let musicOn = true, song = null, step = 0, nextAt = 0, seqTimer = null, musGain = null, noise = null;
+try { musicOn = localStorage.getItem('ala_music') !== 'off'; } catch (e) {}
+function audio() {
+  ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+  if (ac.state === 'suspended' && !document.hidden) ac.resume();
+  return ac;
+}
+function tone(f, t, d, type, v) {
+  const o = ac.createOscillator(), g = ac.createGain();
+  o.type = type; o.frequency.setValueAtTime(f, t);
+  g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(.0001, t + d);
+  o.connect(g).connect(musGain); o.start(t); o.stop(t + d + .02);
+}
+function drum(t, d, v, hp) {
+  if (!noise) {
+    noise = ac.createBuffer(1, ac.sampleRate * .3, ac.sampleRate);
+    const ch = noise.getChannelData(0); for (let i = 0; i < ch.length; i++) ch[i] = Math.random() * 2 - 1;
+  }
+  const s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+  s.buffer = noise; f.type = 'highpass'; f.frequency.value = hp;
+  g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(.0001, t + d);
+  s.connect(f).connect(g).connect(musGain); s.start(t); s.stop(t + d + .02);
+}
+function playStep(t) {
+  const s = SONGS[song], i = step % 64, bar = i >> 4, b = i % 16, sp = 60 / s.bpm / 4;
+  const n = s.lead[i]; if (n) tone(hz(n), t, sp * s.len, 'square', .05);
+  if (b % 2 === 0) { const r = hz(s.roots[bar]); tone(b % 4 ? r * 2 : r, t, sp * 1.6, 'triangle', .12); }
+  if (b % 8 === 0) { const o = ac.createOscillator(), g = ac.createGain(); o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(40, t + .12); g.gain.setValueAtTime(.25, t); g.gain.exponentialRampToValueAtTime(.0001, t + .14); o.connect(g).connect(musGain); o.start(t); o.stop(t + .16); }
+  if (b % 8 === 4) drum(t, .12, .12, 1500);
+  if (b % (s.hat * 2) === 0) drum(t, .03, .04, 7000);
+}
+function music(name) {
+  if (name) song = name;
+  clearInterval(seqTimer); seqTimer = null;
+  if (!musicOn || !song) return;
+  try {
+    audio();
+    if (!musGain) { musGain = ac.createGain(); musGain.gain.value = .35; musGain.connect(ac.destination); }
+    step = 0; nextAt = ac.currentTime + .05;
+    // look-ahead scheduler on a timer, so the beat stays steady
+    seqTimer = setInterval(() => {
+      const sp = 60 / SONGS[song].bpm / 4;
+      while (nextAt < ac.currentTime + .15) { playStep(nextAt); nextAt += sp; step++; }
+    }, 25);
+  } catch (e) {}
+}
+function setMusic(on) {
+  musicOn = on;
+  try { localStorage.setItem('ala_music', on ? 'on' : 'off'); } catch (e) {}
+  $('mus').textContent = on ? '♪ ON' : '♪ OFF';
+  $('mus').classList.toggle('off', !on);
+  music();
+}
+$('mus').onclick = e => { e.stopPropagation(); setMusic(!musicOn); };
+$('mus').textContent = musicOn ? '♪ ON' : '♪ OFF'; $('mus').classList.toggle('off', !musicOn);
+document.addEventListener('visibilitychange', () => { if (!ac) return; document.hidden ? ac.suspend() : ac.resume(); });
+
+// fullscreen toggle (works inside the itch.io iframe when it allows fullscreen)
+const fsEl = document.documentElement, fsReq = fsEl.requestFullscreen || fsEl.webkitRequestFullscreen;
+if (fsReq && (document.fullscreenEnabled || document.webkitFullscreenEnabled)) {
+  $('fs').hidden = false;
+  $('fs').onclick = e => {
+    e.stopPropagation();
+    if (document.fullscreenElement || document.webkitFullscreenElement) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+    else fsReq.call(fsEl);
+  };
+}
+
+function show(id) {
+  document.querySelectorAll('.scr').forEach(s => s.classList.toggle('on', s.id === id));
+  $('app').dataset.s = id;
+  // debate loop during the round, menu loop everywhere else
+  const want = id === 'fight' ? 'fight' : id === 'title' ? null : 'menu';
+  if (want && want !== song) music(want);
+}
+function toast(t) {
+  const el = $('toast'); el.textContent = t; el.style.display = 'block';
+  clearTimeout(toast.t); toast.t = setTimeout(() => el.style.display = 'none', 1800);
+}
+
+// ---------- title ----------
+const t1 = pick(R), t2 = pick(R.filter(c => c !== t1));
+$('tl').src = SP(t1.k, 'i'); $('tr').src = SP(t2.k, 'i');
+$('title').addEventListener('click', () => { sfx(880, .1); sfx(1320, .15); show('select'); });
+
+// ---------- select ----------
+let group = 'LEGENDS';
+function renderTabs() {
+  $('tabs').innerHTML = '';
+  GROUPS.forEach(g => {
+    const b = document.createElement('button');
+    b.textContent = g; b.className = g === group ? 'on' : '';
+    b.onclick = () => { group = g; sfx(660, .05); renderTabs(); renderGrid(); };
+    $('tabs').appendChild(b);
+  });
+}
+function renderGrid() {
+  const grid = $('grid'); grid.innerHTML = ''; grid.scrollTop = 0;
+  R.filter(c => c.g === group).forEach(c => {
+    const d = document.createElement('button');
+    d.className = 'card';
+    d.innerHTML = `<img loading="lazy" src="${SP(c.k, 'p')}" alt=""><span>${c.h}</span>`;
+    d.onclick = () => { d.classList.add('pick'); sfx(520, .08); sfx(1040, .12); setTimeout(() => startVs(c), 220); };
+    grid.appendChild(d);
+  });
+}
+renderTabs(); renderGrid();
+
+// ---------- vs ----------
+let P, C;
+function preload(c) { return ['i', 's'].map(t => new Promise(r => { const im = new Image(); im.onload = im.onerror = r; im.src = SP(c.k, t); })); }
+async function startVs(c, rival) {
+  P = c; C = rival || pick(R.filter(x => x !== c));
+  $('v1').src = SP(P.k, 'p'); $('v2').src = SP(C.k, 'p');
+  $('vn1').textContent = P.h; $('vn2').textContent = C.h;
+  $('vs1').textContent = P.g; $('vs2').textContent = C.g + ' · CPU';
+  show('vs'); sfx(220, .3, 'sawtooth', .06, 400);
+  await Promise.all([wait(1700), ...preload(P), ...preload(C)]);
+  startFight();
+}
+
+// ---------- stage backgrounds (procedural pixel art) ----------
+function drawStage() {
+  const cv = $('bg'), g = cv.getContext('2d'), W = cv.width, H = cv.height, gy = 160;
+  const r = (x, y, w, h, c) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
+  const kind = Math.floor(Math.random() * 3);
+  if (kind === 0) { // night alley
+    r(0, 0, W, H, '#1b1030');
+    for (let y = 30; y < gy; y += 8) for (let x = (y / 8 % 2) * 8 - 8; x < W; x += 16) { r(x, y, 15, 7, (x * y) % 7 ? '#5a2430' : '#6b2c38'); }
+    r(0, 0, W, 30, '#120a24');
+    for (let i = 0; i < 18; i++) r(Math.random() * W | 0, Math.random() * 26 | 0, 1, 1, '#fff');
+    g.fillStyle = '#ffd23e'; g.font = '10px monospace'; g.fillText('E=mc²  ∀x ∃y', 18, 70); g.fillStyle = '#2e8bff'; g.fillText('if(AI)', 110, 98);
+    r(0, gy, W, H - gy, '#2a2a36');
+    for (let y = gy; y < H; y += 6) for (let x = (y / 6 % 2) * 5; x < W; x += 10) r(x, y, 9, 5, '#3a3a4a');
+  } else if (kind === 1) { // old lab with chalkboard
+    r(0, 0, W, H, '#1d2b2a'); r(0, 0, W, 22, '#121c1c');
+    r(20, 40, 140, 70, '#4a3018'); r(24, 44, 132, 62, '#203c30');
+    g.fillStyle = '#d8e8d8'; g.font = '9px monospace';
+    ['∫ f(x)dx', 'P ≠ NP ?', '1 0 1 1 0', 'cogito…'].forEach((t, i) => g.fillText(t, 30 + (i % 2) * 64, 60 + (i >> 1) * 24));
+    for (let x = 6; x < W; x += 44) { r(x, 114, 8, 46, '#3a2a1a'); r(x - 4, 112, 16, 4, '#ffd23e'); }
+    r(0, gy, W, H - gy, '#3b2a1a');
+    for (let x = 0; x < W; x += 20) for (let y = gy; y < H; y += 10) r(x + ((y / 10) % 2) * 10, y, 19, 9, '#4a3522');
+  } else { // neon arcade horizon
+    const sky = g.createLinearGradient(0, 0, 0, gy); sky.addColorStop(0, '#0b0716'); sky.addColorStop(1, '#4a0f3a'); g.fillStyle = sky; g.fillRect(0, 0, W, gy);
+    for (let i = 0; i < 9; i++) r(66, 60 + i * 7, 48, 4 - (i > 5), i % 2 ? '#ff2e4d' : '#ff8a3d');
+    for (let x = 0; x < W; x += 12) { const h = 20 + ((x * 37) % 40); r(x, gy - h, 11, h, '#150c28'); r(x + 3, gy - h + 4, 2, 2, (x % 24) ? '#2e8bff' : '#ffd23e'); }
+    r(0, gy, W, H - gy, '#0b0716');
+    g.strokeStyle = '#2e8bff'; g.lineWidth = 1;
+    for (let y = gy; y < H; y += 6 + (y - gy) / 4) { g.beginPath(); g.moveTo(0, y + .5); g.lineTo(W, y + .5); g.stroke(); }
+    g.strokeStyle = '#ff2e4d';
+    for (let x = -200; x < W + 200; x += 20) { g.beginPath(); g.moveTo(W / 2 + (x - W / 2) * .15, gy); g.lineTo(x, H); g.stroke(); }
+  }
+}
+
+// ---------- fight ----------
+const S = {};
+// rock-paper-scissors: each argument type beats one other
+const ARGS = { f: 'FACT', l: 'LOGIC', q: 'QUOTE' };
+const BEATS = { f: 'q', q: 'l', l: 'f' };
+const COLORS = { f: '#ff5c6c', l: '#5ca8ff', q: '#ffd23e' };
+const DMG = { win: 12, tie: 3, mic: 28 };
+const SUP = { win: 34, lose: 12, tie: 15 };
+function side(n) { return { f: $('f' + n), img: $('i' + n), hp: $('hp' + n), su: $('su' + n), sp: $('sp' + n) }; }
+
+function startFight() {
+  drawStage();
+  clearInterval(S.iv);
+  Object.assign(S, {
+    on: false, busy: false, over: false, time: 99, last: null,
+    p: { c: P, hp: 100, sup: 0, combo: 0, best: 0, el: side(1), n: 1 },
+    c: { c: C, hp: 100, sup: 0, combo: 0, best: 0, el: side(2), n: 2 },
+  });
+  S.p.foe = S.c; S.c.foe = S.p;
+  // timers instead of rAF so the round keeps its pace in throttled webviews
+  S.iv = setInterval(() => loop(performance.now()), 50);
+  [S.p, S.c].forEach(f => { f.el.img.src = SP(f.c.k, 'i'); f.el.f.style.cssText = ''; f.el.f.classList.remove('spc', 'hit'); });
+  $('fn1').textContent = P.h; $('fn2').textContent = C.h;
+  $('fx').innerHTML = ''; $('tm').textContent = 99;
+  updateHud(); setButtons(false);
+  show('fight');
+  intro();
+}
+async function intro() {
+  await banner('ROUND 1', 900, 330);
+  await banner('DEBATE!', 700, 660);
+  S.on = true; S.tickAt = performance.now() + 600;
+  setButtons(true);
+}
+function banner(t, ms, f) {
+  const b = document.createElement('div'); b.className = 'banner'; b.textContent = t;
+  $('fx').appendChild(b); if (f) { sfx(f, .25, 'square', .08); }
+  b.animate([{ transform: 'scale(2.4)', opacity: 0 }, { transform: 'scale(1)', opacity: 1, offset: .25 }, { opacity: 1, offset: .85 }, { opacity: 0 }], { duration: ms });
+  return wait(ms).then(() => b.remove());
+}
+function setButtons(on) { ['bP', 'bK', 'bS', 'bM'].forEach(id => $(id).disabled = !on); updateHud(); }
+function updateHud() {
+  if (!S.p) return;
+  [S.p, S.c].forEach(f => {
+    f.el.hp.style.width = Math.max(0, f.hp) + '%';
+    f.el.su.style.width = f.sup + '%';
+    f.el.sp.classList.toggle('full', f.sup >= 100);
+  });
+  $('bM').hidden = S.p.sup < 100;
+}
+
+function loop(now) {
+  if (!S.on) return;
+  if (now >= S.tickAt) {
+    S.tickAt = now + 600; S.time--; $('tm').textContent = S.time;
+    if (S.time <= 10) sfx(1200, .03);
+    if (S.time <= 0) return timeUp();
+  }
+}
+
+// CPU: sometimes counters the player's previous argument, otherwise random
+function cpuPick() {
+  if (S.last && Math.random() < .35) return Object.keys(BEATS).find(k => BEATS[k] === S.last);
+  return pick(Object.keys(ARGS));
+}
+
+async function exchange(pk) {
+  if (!S.on || S.busy) return;
+  S.busy = true; setButtons(false);
+  const ck = cpuPick();
+  S.last = pk;
+  clearFx();
+  tag(S.p, ARGS[pk], COLORS[pk]); tag(S.c, ARGS[ck], COLORS[ck]);
+  sfx(520, .05); await wait(380);
+  if (!S.on) return;
+  if (pk === ck) {
+    callout('TIE!', '#fff');
+    lunge(S.p, 'l'); lunge(S.c, 'l');
+    bubble(S.p, pk, true); bubble(S.c, ck, true);
+    await wait(120);
+    hit(S.c, S.p, DMG.tie); hit(S.p, S.c, DMG.tie);
+    S.p.sup = Math.min(100, S.p.sup + SUP.tie); S.c.sup = Math.min(100, S.c.sup + SUP.tie);
+    S.p.combo = S.c.combo = 0;
+  } else {
+    const pWins = BEATS[pk] === ck, w = pWins ? S.p : S.c, wk = pWins ? pk : ck, lk = pWins ? ck : pk;
+    callout(`${ARGS[wk]} BEATS ${ARGS[lk]}!`, COLORS[wk]);
+    lunge(w, wk);
+    bubble(w, wk);
+    await wait(wk === 'l' ? 150 : 90);
+    w.combo++; w.best = Math.max(w.best, w.combo); w.foe.combo = 0;
+    hit(w, w.foe, DMG.win, wk === 'l');
+    w.sup = Math.min(100, w.sup + SUP.win); w.foe.sup = Math.min(100, w.foe.sup + SUP.lose);
+    if (w.combo >= 2) comboTag(w);
+  }
+  updateHud();
+  if (S.p.hp <= 0 || S.c.hp <= 0) { await wait(1200); return ko(); }
+  await wait(1100);
+  if (!S.on) return;
+  // the CPU answers with its MIC DROP when its bar is full
+  if (S.c.sup >= 100 && Math.random() < .6) return micDrop(S.c);
+  S.busy = false; setButtons(true);
+}
+
+async function micDrop(a) {
+  if (!S.on) return;
+  const d = a.foe, dir = a.n === 1 ? 1 : -1, [text, src] = a.c.d.md;
+  a.sup = 0; S.on = false; S.busy = true; updateHud(); setButtons(false); clearFx();
+  a.el.img.src = SP(a.c.k, 's'); a.el.f.classList.add('spc');
+  callout('MIC DROP!', a.n === 1 ? 'var(--red)' : 'var(--blue)', true);
+  sfx(180, .5, 'sawtooth', .07, 900); flash(.9);
+  a.el.f.animate([{ transform: 'none' }, { transform: `translateX(${dir * 20}px) scale(1.06)` }], { duration: 250, fill: 'forwards' });
+  await wait(380);
+  hit(a, d, DMG.mic, true, true);
+  a.combo++; a.best = Math.max(a.best, a.combo); d.combo = 0;
+  bubble(a, 'md');
+  await wait(Math.min(3400, 1500 + text.length * 26));
+  clearFx();
+  a.el.f.getAnimations().forEach(x => x.cancel());
+  a.el.img.src = SP(a.c.k, 'i'); a.el.f.classList.remove('spc');
+  if (d.hp <= 0 || a.hp <= 0) return ko();
+  S.tickAt = performance.now() + 600; S.on = true; S.busy = false; setButtons(true);
+}
+
+['bP', 'bK', 'bS'].forEach((id, i) => $(id).addEventListener('pointerdown', e => { e.preventDefault(); exchange(['f', 'l', 'q'][i]); }));
+$('bM').addEventListener('pointerdown', e => { e.preventDefault(); if (S.on && !S.busy && S.p.sup >= 100) micDrop(S.p); });
+
+function lunge(a, k) {
+  const dir = a.n === 1 ? 1 : -1;
+  // FACT jabs, LOGIC kicks, QUOTE leans in
+  const frames = k === 'l'
+    ? [{ transform: 'none' }, { transform: `translate(${dir * 34}px,-18px) rotate(${dir * 8}deg)` }, { transform: 'none' }]
+    : [{ transform: 'none' }, { transform: `translateX(${dir * (k === 'q' ? 18 : 26)}px)` }, { transform: 'none' }];
+  a.el.f.animate(frames, { duration: k === 'l' ? 300 : 180, easing: 'steps(3)' });
+  sfx(k === 'l' ? 200 : 300, .06, 'square', .05, -120);
+}
+function hit(a, d, dmg, heavy, mic) {
+  d.hp = Math.max(0, d.hp - dmg);
+  const st = $('stage').getBoundingClientRect(), fr = d.el.f.getBoundingClientRect();
+  const s = document.createElement('div'); s.className = 'spark';
+  s.style.left = (fr.left - st.left + fr.width * (d.n === 2 ? .3 : .7)) + 'px';
+  s.style.top = (fr.top - st.top + fr.height * rnd(.3, .5)) + 'px';
+  $('fx').appendChild(s);
+  s.animate([{ transform: 'scale(.4) rotate(0)' }, { transform: `scale(${mic ? 2.6 : heavy ? 1.6 : 1.1}) rotate(40deg)`, opacity: 0 }], { duration: 260 }).onfinish = () => s.remove();
+  d.el.f.classList.add('hit'); setTimeout(() => d.el.f.classList.remove('hit'), 90);
+  const dir = d.n === 1 ? -1 : 1;
+  d.el.f.animate([{ transform: 'none' }, { transform: `translateX(${dir * (mic ? 30 : 12)}px)` }, { transform: 'none' }], { duration: 200 });
+  sfx(mic ? 90 : heavy ? 140 : 180, mic ? .3 : .12, 'square', .09, -60);
+  if (heavy) shake(mic ? 12 : 6);
+  updateHud();
+}
+function comboTag(a) {
+  const old = $('fx').querySelector('.combo.' + (a.n === 1 ? 'l' : 'r')); if (old) old.remove();
+  const c = document.createElement('div'); c.className = 'combo ' + (a.n === 1 ? 'l' : 'r');
+  c.textContent = a.combo + ' IN A ROW!'; $('fx').appendChild(c);
+  c.animate([{ transform: 'scale(1.5)' }, { transform: 'scale(1)' }], { duration: 150 });
+  setTimeout(() => c.remove(), 1100);
+}
+function tag(f, t, col) {
+  const st = $('stage').getBoundingClientRect(), fr = f.el.f.getBoundingClientRect();
+  const el = document.createElement('div'); el.className = 'tag'; el.textContent = t; el.style.color = col;
+  el.style.left = (fr.left - st.left + fr.width / 2 - 30) + 'px'; el.style.top = (fr.top - st.top - 4) + 'px';
+  $('fx').appendChild(el);
+  el.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-24px)', opacity: 0 }], { duration: 900 }).onfinish = () => el.remove();
+}
+function callout(t, col, big) {
+  const el = document.createElement('div'); el.className = 'move'; el.style.color = col; el.textContent = t;
+  if (big) el.style.fontSize = '32px';
+  $('fx').appendChild(el);
+  el.animate([{ transform: 'scale(.3)' }, { transform: 'scale(1.15)' }, { transform: 'scale(1)' }], { duration: 300 });
+}
+function clearFx() { $('fx').querySelectorAll('.bubble,.move').forEach(b => b.remove()); }
+// argument bubble over the speaker: type label, the line and its source
+function bubble(a, k, small) {
+  const [text, src] = a.c.d[k];
+  const b = document.createElement('div');
+  b.className = 'bubble ' + (a.n === 1 ? 'l' : 'r') + (small ? ' sm' : '') + (k === 'md' ? ' drop' : '');
+  const head = document.createElement('b');
+  head.textContent = `${a.c.h} · ${k === 'md' ? 'MIC DROP' : ARGS[k]}`;
+  const cite = document.createElement('i'); cite.textContent = src;
+  b.append(head, document.createTextNode(k === 'f' ? text : `“${text}”`), cite);
+  $('fx').appendChild(b);
+  b.animate([{ transform: 'scale(.85)' }, { transform: 'scale(1.06)' }, { transform: 'scale(1)' }], { duration: 220 });
+}
+function shake(px) {
+  $('stage').animate([0, 1, 2, 3, 4, 5].map(i => ({ transform: `translate(${(i % 2 ? 1 : -1) * px * (1 - i / 6)}px,${(i % 3 - 1) * px / 2}px)` })).concat([{ transform: 'none' }]), { duration: 280 });
+}
+function flash(o) { $('flash').animate([{ opacity: o }, { opacity: 0 }], { duration: 260 }); }
+
+function timeUp() {
+  S.on = false;
+  // close finish at the bell = DOUBLE K.O.
+  if (Math.abs(S.p.hp - S.c.hp) <= 6) { S.p.hp = S.c.hp = 0; updateHud(); }
+  else (S.p.hp < S.c.hp ? S.p : S.c).hp = 0;
+  ko(true);
+}
+async function ko(time) {
+  if (S.over) return;
+  S.over = true; S.on = false; setButtons(false);
+  // a K.O. where the winner is nearly out too counts as a DOUBLE K.O.
+  if ((S.p.hp <= 0) !== (S.c.hp <= 0) && Math.max(S.p.hp, S.c.hp) <= 10) S.p.hp = S.c.hp = 0;
+  updateHud();
+  const dbl = S.p.hp <= 0 && S.c.hp <= 0;
+  if (time) await banner('TIME!', 800, 440);
+  flash(1); shake(14); sfx(70, .8, 'sawtooth', .1, -40);
+  [S.p, S.c].filter(f => f.hp <= 0).forEach(f => {
+    const dir = f.n === 1 ? -1 : 1;
+    f.el.f.animate([{ transform: 'none' }, { transform: `translate(${dir * 40}px,-30px) rotate(${dir * 30}deg)` }, { transform: `translate(${dir * 70}px,30%) rotate(${dir * 90}deg)`, opacity: .8 }], { duration: 700, fill: 'forwards', easing: 'ease-in' });
+  });
+  await banner(dbl ? 'DOUBLE K.O.' : 'K.O.!', 1700);
+  endScreen(dbl ? 'double' : S.c.hp <= 0 ? 'win' : 'lose');
+}
+
+// ---------- end ----------
+let result = '';
+function endScreen(r) {
+  result = r;
+  $('e1').src = SP(P.k, 'p'); $('e2').src = SP(C.k, 'p');
+  $('e1').className = r === 'lose' ? 'lost' : ''; $('e2').className = r === 'win' ? 'lost' : '';
+  $('eko').textContent = r === 'double' ? 'DOUBLE K.O.' : 'K.O.!';
+  const combo = S.p.best >= 2 ? `Best streak: ${S.p.best} in a row` : '';
+  if (r === 'win') { $('emsg').innerHTML = `You won with <span class="r">${P.h}</span>!`; $('esub').textContent = `${C.h} lost the argument. ${combo}`; }
+  else if (r === 'lose') { $('emsg').innerHTML = `<span class="b">${C.h}</span> wins!`; $('esub').textContent = `${P.h} needs a rematch. ${combo}`; }
+  else { $('emsg').innerHTML = `<span class="r">Red</span> or <span class="b">blue</span>? Nobody's left standing.`; $('esub').textContent = `${P.h} vs ${C.h} · Comment on @ai.legends.arcade`; }
+  show('end'); sfx(r === 'lose' ? 220 : 660, .4, 'square', .07, r === 'lose' ? -120 : 600);
+}
+// Public page to share. Set it once the itch.io page exists; until then use the embedding page (itch) or this page.
+const GAME_URL = 'https://manuelaheres-sudo.github.io/ai-legends-arcade/';
+const shareUrl = () => GAME_URL
+  || (/^https:\/\/[^/]+\.itch\.io\/[^/?#]+/.test(document.referrer) ? document.referrer.split('?')[0] : '')
+  || location.href.split('#')[0].split('?')[0];
+function copyText(t) {
+  // execCommand works inside sandboxed iframes where the async clipboard API is blocked
+  const ta = document.createElement('textarea');
+  ta.value = t; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;opacity:0';
+  document.body.appendChild(ta); ta.select();
+  let ok = false; try { ok = document.execCommand('copy'); } catch (e) {}
+  ta.remove(); return ok;
+}
+$('bShare').onclick = async () => {
+  const text = result === 'win' ? `I won the debate with ${P.h} vs ${C.h} in AI LEGENDS ARCADE 🕹️ Can you out-argue them?`
+    : result === 'lose' ? `${C.h} just out-argued my ${P.h} in AI LEGENDS ARCADE 🕹️ Avenge me!`
+    : `DOUBLE K.O.! ${P.h} vs ${C.h} in AI LEGENDS ARCADE 🕹️ Who won: red or blue?`;
+  const url = shareUrl();
+  if (navigator.share) { try { await navigator.share({ title: 'AI LEGENDS ARCADE', text, url }); return; } catch (e) { if (e.name === 'AbortError') return; } }
+  try { await navigator.clipboard.writeText(`${text} ${url}`); toast('Link copied!'); return; } catch (e) {}
+  if (copyText(`${text} ${url}`)) toast('Link copied!');
+  else window.prompt('Copy this link:', `${text} ${url}`);
+};
+$('bAgain').onclick = () => startVs(P, C);
+$('bPick').onclick = () => { show('select'); document.querySelectorAll('.card.pick').forEach(c => c.classList.remove('pick')); };
+})();
+</script>
+</body>
+</html>
